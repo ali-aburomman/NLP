@@ -1,0 +1,54 @@
+from LexicalReplacement import LexicalReplacement		from LexicalReplacement import LexicalReplacement
+
+
+config = {"mappings":"./mappings/w2v_50.json",		      |	config = {"mappings":"../mappings/w2v_50.json",
+          "embeddings":"./models/w2v_50"}		      |	          "embeddings":"../models/w2v_50"}
+
+class Test(object):						class Test(object):
+    """								    """
+    Test objects built for evaluating the model. You can form	    Test objects built for evaluating the model. You can form
+    this class to pass the tests to the generator.		    this class to pass the tests to the generator.
+
+    """								    """
+    def __init__(self, text, source=None, target=None, focus_	    def __init__(self, text, source=None, target=None, focus_
+        self.text = text					        self.text = text
+        self.source = source					        self.source = source
+        self.target = target					        self.target = target
+        self.focus_id = focus_id				        self.focus_id = focus_id
+        self.gold = gold					        self.gold = gold
+
+    @staticmethod						    @staticmethod
+    def from_tsv(data, target_sent=True):			    def from_tsv(data, target_sent=True):
+        """							        """
+        Helper to generate tests from a tab-separated line	        Helper to generate tests from a tab-separated line
+        :param line:						        :param line:
+        :return:						        :return:
+        """							        """
+
+        if target_sent:						        if target_sent:
+            targ = data[3]					            targ = data[3]
+        return Test(data[2], data[-2], data[-1].strip(), int(	        return Test(data[2], data[-2], data[-1].strip(), int(
+
+    def __repr__(self):						    def __repr__(self):
+        return self.text + " " + self.source + " " + self.tar	        return self.text + " " + self.source + " " + self.tar
+    								    
+
+def test_model(texts):						def test_model(texts):
+    """								    """
+    Run all the tests on the test data				    Run all the tests on the test data
+    :param texts:						    :param texts:
+    :return:							    :return:
+    """								    """
+    model = LexicalReplacement(config["mappings"], config["em	    model = LexicalReplacement(config["mappings"], config["em
+
+    for text in texts:						    for text in texts:
+        print(model.generate_test(Test.from_tsv(text)))		        print(model.generate_test(Test.from_tsv(text)))
+
+    								    
+def main(argv=None):						def main(argv=None):
+    texts = [t.split("\t") for t in open("tests/final.tsv").r	    texts = [t.split("\t") for t in open("tests/final.tsv").r
+    test_model(texts)						    test_model(texts)
+
+
+if __name__ == "__main__":					if __name__ == "__main__":
+    main()							    main()

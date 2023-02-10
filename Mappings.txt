@@ -1,0 +1,75 @@
+							      >	import sys, getopt
+import json							import json
+							      >
+import Embedding						import Embedding
+import Frames							import Frames
+
+							      >	# Default parameters
+							      >	config = {"model_type":"w2v",
+							      >	          "model_file":"../models/w2v_50",
+							      >	          "output_file":"../mappings/w2v_50.json"}
+							      >
+
+def known_mappings():						def known_mappings():
+    """								    """
+    Dictionary of all frame->frame mappings based on the avai	    Dictionary of all frame->frame mappings based on the avai
+    :return:							    :return:
+    """								    """
+    mappings = {}						    mappings = {}
+    for frame in Frames.frames:					    for frame in Frames.frames:
+        for frame2 in Frames.frames:				        for frame2 in Frames.frames:
+            mappings[frame.upper() + " " + frame2.upper()] = 	            mappings[frame.upper() + " " + frame2.upper()] = 
+    return mappings						    return mappings
+
+
+def learn_frame_mappings(input_embeddings, output_file):	def learn_frame_mappings(input_embeddings, output_file):
+    """								    """
+    Using an embedding model, generate the vectors correspond	    Using an embedding model, generate the vectors correspond
+
+    :param input_embeddings:					    :param input_embeddings:
+    :param output_file:						    :param output_file:
+    :return:							    :return:
+    """								    """
+    km = known_mappings()					    km = known_mappings()
+    final_mappings = {k:None for k in km}			    final_mappings = {k:None for k in km}
+
+    for mapping in [k.split() for k in km.keys()]:		    for mapping in [k.split() for k in km.keys()]:
+        if mapping[0] in input_embeddings.wv and mapping[1] i	        if mapping[0] in input_embeddings.wv and mapping[1] i
+            final_mappings[mapping[0] + " " + mapping[1]] = [	            final_mappings[mapping[0] + " " + mapping[1]] = [
+
+    json.dump(final_mappings, open(output_file, "w"))		    json.dump(final_mappings, open(output_file, "w"))
+
+
+def main(argv=None):						def main(argv=None):
+    model = Embedding.load_w2v('./models/w2v_50')	      |	    if argv is None:
+    learn_frame_mappings(model, './mappings/w2v_50.json')     |	        argv = sys.argv
+							      >	    try:
+							      >	        opts, args = getopt.getopt(argv[1:], "hm:t:", ["help"
+							      >	    except Exception as e:
+							      >	        print ("Error in args : " + str(argv[1:]))
+							      >	        print (e)
+							      >	        return 2
+							      >
+							      >	    model = None
+							      >
+							      >	    for o in opts:
+							      >	        if o[0] == "-m":
+							      >	            config["model_type"] = o[1]
+							      >	        if o[0] == "-i":
+							      >	            config["model_file"] = o[1]
+							      >	        if o[0] == "-o":
+							      >	            config["output_file"] = o[1]
+							      >
+							      >	    if config["model_type"] == "w2v":
+							      >	        model = Embedding.load_w2v(config["model_file"])
+							      >	    elif config["model_type"] == "ft":
+							      >	        model = Embedding.load_fasttext(config["model_file"])
+							      >	    #    elif config["model_type"] == "glove":
+							      >	    #        model = Embedding.load_glove(model_file)
+							      >
+							      >	    learn_frame_mappings(model, config["output_file"])
+
+
+if __name__ == "__main__":					if __name__ == "__main__":
+    main()							    main()
+

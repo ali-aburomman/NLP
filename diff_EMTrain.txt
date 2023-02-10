@@ -1,0 +1,81 @@
+# -*- coding: utf-8 -*-						# -*- coding: utf-8 -*-
+import sys, os, getopt						import sys, os, getopt
+import random							import random
+import logging							import logging
+
+							      >	from gensim.models.fasttext import FastText
+from gensim.models.word2vec import Word2Vec			from gensim.models.word2vec import Word2Vec
+							      >	#from glove import Corpus, Glove
+
+logging.basicConfig(format="%(asctime)s:%(levelname)s:%(messa	logging.basicConfig(format="%(asctime)s:%(levelname)s:%(messa
+                    level=logging.INFO)				                    level=logging.INFO)
+
+config = {"input_file": "./data/frame_corpus.txt",	      |	config = {"input_file":"./data/frame_corpus.txt",
+          "output_file": "./models/w2v_50/",		      |	          "output_file":"./models/w2v_50",
+          "model_type": "w2v",				      |	          "model_type":"w2v",
+          "dimensions": 50}				      |	          "dimensions":50}
+							      >
+							      >	'''
+							      >	def load_glove(input_lines, size=100, iter=20):
+							      >	    corpus = Corpus()
+							      >	    corpus.fit(input_lines)
+							      >
+							      >	    glove = Glove(no_components=size)
+							      >	    glove.fit(corpus.matrix, epochs=iter)
+							      >	    glove.add_dictionary(corpus.dictionary)
+							      >	    return glove
+							      >	'''
+
+
+def iterative_train_model(input_file, output_dir, embedding_c	def iterative_train_model(input_file, output_dir, embedding_c
+    """								    """
+    Training a given vector model				    Training a given vector model
+
+    :param input_file:						    :param input_file:
+    :param output_dir:						    :param output_dir:
+    :param embedding_class:					    :param embedding_class:
+    :param d:							    :param d:
+    :return:							    :return:
+    """								    """
+    data = [line.split() for line in open(input_file, encodin	    data = [line.split() for line in open(input_file, encodin
+    random.shuffle(data)					    random.shuffle(data)
+    model = embedding_class(corpus_file=input_file, vector_si |	    
+							      >	    model = embedding_class(data, size=d, iter=2)
+    model.save(output_dir)					    model.save(output_dir)
+
+
+def main(argv=None):						def main(argv=None):
+    config["input_file"] = './data/frame_corpus.txt'	      |	    if argv is None:
+    config["output_file"] = './models/w2v_50'		      |	        argv = sys.argv
+    config["dimensions"] = 50				      |	    try:
+    model = Word2Vec					      |	        opts, args = getopt.getopt(argv[1:], "hi:o:m:d:", ["h
+							      >	    except Exception as e:
+							      >	        print ("Error in args : " + str(argv[1:]))
+							      >	        print (e)
+							      >	        return 2
+							      >
+							      >	    model = None
+							      >
+							      >	    for o in opts:
+							      >	        if o[0] == "-i":
+							      >	            config["input_file"] = o[1]
+							      >	        if o[0] == "-o":
+							      >	            config["output_file"] = o[1]
+							      >	        if o[0] == "-m":
+							      >	            config["model_type"] = o[1]
+							      >	        if o[0] == "-d":
+							      >	            config["dimensions"] = int(o[1])
+							      >
+							      >	    if model_type == "w2v":
+							      >	        model = Word2Vec
+							      >	    elif model_type == "ft":
+							      >	        model = FastText
+							      >	#    elif model_type == "glove":
+							      >	#        model = load_glove
+							      >
+							      >	    print ("Training embeddings on input {input_file} using m
+    iterative_train_model(config["input_file"], config["outpu	    iterative_train_model(config["input_file"], config["outpu
+
+
+if __name__ == "__main__":					if __name__ == "__main__":
+    sys.exit(main())						    sys.exit(main())
